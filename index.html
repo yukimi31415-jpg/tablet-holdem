@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<meta name="theme-color" content="#123524" />
+<title>ローカル・ホールデム</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ホールデム">
+<meta name="description" content="同じWi-Fi内の2台で直接通信する、賭け要素のない得点制ホールデム風カードゲーム">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:#0d2419;color:#f7f7f7;min-height:100vh}
+main{max-width:980px;margin:0 auto;padding:18px}.cardbox{background:#153c2a;border:1px solid #2f6d50;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 8px 24px #0004}
+h1{font-size:clamp(24px,4vw,38px);margin:0 0 8px}h2{font-size:clamp(20px,3vw,28px);margin:0 0 12px}.muted{color:#c7d7cf}.warn{color:#ffe09a}.ok{color:#a8f0bd}.err{color:#ffb4b4}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.grow{flex:1 1 260px}
+button,input,textarea{font:inherit;border-radius:12px;border:1px solid #4d8567}button{min-height:52px;padding:12px 18px;background:#e7efe9;color:#102519;font-weight:700;cursor:pointer}button.primary{background:#ffd25c;color:#2d2100;border-color:#ffd25c}button.danger{background:#6d2930;color:white}button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea{width:100%;background:#0b2016;color:#fff;padding:12px}input{min-height:50px}textarea{min-height:126px;font-size:12px;word-break:break-all}.label{display:block;margin:9px 0 5px;font-weight:700}
+.hidden{display:none!important}.pill{display:inline-block;border:1px solid #639476;border-radius:999px;padding:5px 10px;margin-right:6px;background:#0f2c1e}.status{padding:10px 12px;border-radius:12px;background:#0b2016;border:1px solid #315d46;margin-top:10px}
+.cards{display:flex;gap:8px;flex-wrap:wrap;min-height:102px;align-items:center}.playing-card{width:68px;height:96px;border-radius:10px;background:#fff;color:#111;display:flex;flex-direction:column;justify-content:space-between;padding:7px;font-weight:800;font-size:23px;box-shadow:0 4px 10px #0005}.red{color:#c3292e}.back{background:repeating-linear-gradient(45deg,#1d4a91,#1d4a91 7px,#fff 7px,#fff 9px);border:5px solid #fff}.small{font-size:13px}.score{font-size:clamp(20px,3vw,30px);font-weight:800}.result{font-size:clamp(18px,2.8vw,26px);font-weight:800;padding:12px;background:#0b2016;border-radius:12px;margin-top:10px}
+.steps{margin:0;padding-left:22px}.steps li{margin:7px 0}.codehint{font-size:13px;color:#c7d7cf}.rolebtn{flex:1 1 220px}.divider{height:1px;background:#38644e;margin:16px 0}.footer{font-size:12px;color:#aac0b3;padding:20px 0 40px}
+@media(min-width:760px){main{padding:26px}.playing-card{width:82px;height:116px;font-size:28px}button{min-height:58px;font-size:18px}input{font-size:18px}}
+</style>
+</head>
+<body><main>
+<section class="cardbox">
+  <h1>ローカル・ホールデム</h1>
+  <div class="muted">同じWi‑Fi内の2台で直接通信する、得点制のホールデム風カードゲームです。課金・換金・賭け機能はありません。</div>
+  <div id="compat" class="status">ブラウザ互換性を確認中…</div>
+  <div id="pwaState" class="status">オフライン準備状態を確認中…</div>
+</section>
+
+<section id="setup" class="cardbox">
+  <h2>1. 役割を選ぶ</h2>
+  <div class="row">
+    <button class="primary rolebtn" id="hostBtn">部屋を作る側</button>
+    <button class="rolebtn" id="guestBtn">参加する側</button>
+  </div>
+
+  <div id="hostSetup" class="hidden">
+    <div class="divider"></div><h2>部屋を作る</h2>
+    <label class="label">あなたの名前</label><input id="hostName" value="ホスト" maxlength="12">
+    <label class="label">合言葉（4〜12文字）</label><input id="hostPass" inputmode="numeric" value="1234" maxlength="12">
+    <button class="primary" id="makeOffer">① 接続コードを作る</button>
+    <div id="offerArea" class="hidden">
+      <label class="label">この接続コードを相手に渡す</label>
+      <textarea id="offerCode" readonly></textarea>
+      <div class="row"><button id="copyOffer">コードをコピー</button><span class="codehint">AirDrop・メモ・画面を見せてコピーなどで渡せます。</span></div>
+      <label class="label">② 相手から返ってきた「返答コード」を貼る</label>
+      <textarea id="answerInput" placeholder="返答コードをここに貼り付け"></textarea>
+      <button class="primary" id="applyAnswer">③ 接続する</button>
+    </div>
+  </div>
+
+  <div id="guestSetup" class="hidden">
+    <div class="divider"></div><h2>部屋に参加する</h2>
+    <label class="label">あなたの名前</label><input id="guestName" value="ゲスト" maxlength="12">
+    <label class="label">合言葉</label><input id="guestPass" inputmode="numeric" maxlength="12" placeholder="ホストと同じ合言葉">
+    <label class="label">ホストから受け取った接続コード</label>
+    <textarea id="offerInput" placeholder="接続コードをここに貼り付け"></textarea>
+    <button class="primary" id="makeAnswer">① 返答コードを作る</button>
+    <div id="answerArea" class="hidden">
+      <label class="label">この返答コードをホストに返す</label>
+      <textarea id="answerCode" readonly></textarea>
+      <div class="row"><button id="copyAnswer">コードをコピー</button><span class="codehint">ホスト側で「接続する」を押すと直結します。</span></div>
+    </div>
+  </div>
+  <div id="connectStatus" class="status hidden"></div>
+</section>
+
+<section id="game" class="hidden">
+  <section class="cardbox">
+    <div class="row"><span class="pill" id="rolePill"></span><span class="pill" id="peerPill"></span><span class="pill" id="roundPill">第0局</span></div>
+    <div id="netStatus" class="status ok">接続中</div>
+  </section>
+  <section class="cardbox">
+    <h2>得点</h2><div class="row score"><div id="scoreMe">あなた 0</div><div>：</div><div id="scorePeer">相手 0</div></div>
+  </section>
+  <section class="cardbox"><h2>あなたの手札</h2><div id="myCards" class="cards"></div><div id="myHandName" class="muted"></div></section>
+  <section class="cardbox"><h2>共通カード</h2><div id="community" class="cards"></div></section>
+  <section class="cardbox"><h2>相手</h2><div id="peerCards" class="cards"></div><div id="peerHandName" class="muted"></div><div id="result" class="result hidden"></div></section>
+  <section id="hostControls" class="cardbox hidden">
+    <h2>進行</h2>
+    <div class="row">
+      <button class="primary" id="newRound">新しいラウンド</button>
+      <button id="flop" disabled>フロップ</button><button id="turn" disabled>ターン</button><button id="river" disabled>リバー</button><button id="showdown" disabled>ショーダウン</button>
+    </div>
+    <p class="muted small">ホストだけが進行ボタンを操作します。ベット機能はなく、勝者に1点入ります。</p>
+  </section>
+</section>
+
+<section class="cardbox" id="installHelp">
+<h2>iPadで最初に1回だけすること</h2>
+<ol class="steps">
+<li>Safariで、このアプリを公開したHTTPSのURLを開きます。</li>
+<li>ページを一度最後まで表示したまま数秒待ち、「オフライン準備完了」と表示されるのを確認します。</li>
+<li>Safariの共有ボタン →「ホーム画面に追加」→「Webアプリとして開く」をオン →「追加」。</li>
+<li>ホーム画面の「ホールデム」を起動します。以後、ゲーム本体はキャッシュから起動できます。</li>
+</ol>
+<div class="warn small">※ 初回のURL読み込みとオフライン保存にはインターネット接続が必要です。2台で対戦するときのゲーム通信は、同じWi‑Fi内で直接行います。</div>
+</section>
+
+<section class="cardbox">
+<h2>完全オフラインでつなぐ手順</h2>
+<ol class="steps"><li>2台ともこのページを開き、同じWi‑Fiに接続します。</li><li>片方が「部屋を作る側」、もう片方が「参加する側」を選びます。</li><li>ホストが接続コードを作り、参加側に渡します。</li><li>参加側が返答コードを作ってホストに返します。</li><li>ホストが返答コードを貼って「接続する」を押します。合言葉が一致するとゲーム画面へ移ります。</li></ol>
+<div class="warn small">※ 接続コードの受け渡しは初回だけ必要です。完全オフラインでは、4桁の合言葉だけから別端末を自動発見するための仲介サーバーが存在しないため、この1往復を省略できません。</div>
+</section>
+<div class="footer">外部CDN・広告・解析サービスは使用しません。ゲーム中の端末間通信にはWebRTC DataChannelを使います。</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let role=null, pc=null, dc=null, hostName='ホスト', guestName='ゲスト', roomPass='';
+let connected=false, authorized=false;
+let hostGame={round:0,phase:'idle',community:[],hands:[[],[]],scores:[0,0],result:'',handNames:['','']};
+let clientView={round:0,phase:'idle',community:[],myHand:[],scores:[0,0],result:'',showdownHands:null,handNames:['','']};
+
+function status(msg,cls=''){ const e=$('connectStatus'); e.className='status '+cls; e.textContent=msg; }
+function compat(){ const ok=typeof RTCPeerConnection!=='undefined'; $('compat').textContent=ok?'このブラウザはWebRTC DataChannelに対応しています。':'このブラウザはWebRTCに対応していません。別の対応ブラウザが必要です。'; $('compat').className='status '+(ok?'ok':'err'); $('hostBtn').disabled=!ok; $('guestBtn').disabled=!ok; }
+compat();
+
+$('hostBtn').onclick=()=>{role='host';$('hostSetup').classList.remove('hidden');$('guestSetup').classList.add('hidden');status('ホスト側の設定をしてください。');};
+$('guestBtn').onclick=()=>{role='guest';$('guestSetup').classList.remove('hidden');$('hostSetup').classList.add('hidden');status('参加側の設定をしてください。');};
+
+function encodeObj(obj){ const bytes=new TextEncoder().encode(JSON.stringify(obj)); let s=''; for(const b of bytes)s+=String.fromCharCode(b); return btoa(s); }
+function decodeObj(s){ const bin=atob(s.trim().replace(/\s+/g,'')); const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0)); return JSON.parse(new TextDecoder().decode(bytes)); }
+function waitIce(pc){ if(pc.iceGatheringState==='complete') return Promise.resolve(); return new Promise(resolve=>{ const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);resolve();}}; pc.addEventListener('icegatheringstatechange',f); setTimeout(resolve,5000);}); }
+function makePc(){
+  pc=new RTCPeerConnection({iceServers:[]});
+  pc.onconnectionstatechange=()=>{ const s=pc.connectionState; if(s==='connected'){connected=true;$('netStatus').textContent='2台が直接接続されています';$('netStatus').className='status ok';} if(['failed','disconnected','closed'].includes(s)){ $('netStatus').textContent='接続状態: '+s;$('netStatus').className='status err'; } };
+  return pc;
+}
+function setupDc(channel){ dc=channel; dc.onopen=()=>{ if(role==='guest'){guestName=$('guestName').value.trim()||'ゲスト'; roomPass=$('guestPass').value.trim(); send({t:'hello',name:guestName,pass:roomPass}); status('直結しました。合言葉を確認中…','ok');} else status('直結しました。相手の認証を待っています…','ok'); };
+  dc.onmessage=e=>{try{handleMsg(JSON.parse(e.data));}catch(err){console.error(err)}};
+  dc.onclose=()=>{authorized=false;$('netStatus').textContent='接続が切れました';$('netStatus').className='status err';};
+}
+function send(o){ if(dc&&dc.readyState==='open') dc.send(JSON.stringify(o)); }
+
+$('makeOffer').onclick=async()=>{
+ try{
+  hostName=$('hostName').value.trim()||'ホスト'; roomPass=$('hostPass').value.trim(); if(roomPass.length<4){status('合言葉は4文字以上にしてください。','err');return;}
+  makePc(); setupDc(pc.createDataChannel('poker',{ordered:true}));
+  await pc.setLocalDescription(await pc.createOffer()); await waitIce(pc);
+  $('offerCode').value=encodeObj({v:1,sdp:pc.localDescription}); $('offerArea').classList.remove('hidden'); status('接続コードを相手に渡してください。','ok');
+ }catch(e){status('接続コード作成に失敗: '+e.message,'err');}
+};
+$('makeAnswer').onclick=async()=>{
+ try{
+  guestName=$('guestName').value.trim()||'ゲスト'; roomPass=$('guestPass').value.trim(); if(roomPass.length<4){status('合言葉を入力してください。','err');return;}
+  const data=decodeObj($('offerInput').value); makePc(); pc.ondatachannel=e=>setupDc(e.channel); await pc.setRemoteDescription(data.sdp); await pc.setLocalDescription(await pc.createAnswer()); await waitIce(pc);
+  $('answerCode').value=encodeObj({v:1,sdp:pc.localDescription}); $('answerArea').classList.remove('hidden'); status('返答コードをホストに渡してください。','ok');
+ }catch(e){status('接続コードを読み込めません: '+e.message,'err');}
+};
+$('applyAnswer').onclick=async()=>{try{const data=decodeObj($('answerInput').value);await pc.setRemoteDescription(data.sdp);status('接続処理中…','ok');}catch(e){status('返答コードを読み込めません: '+e.message,'err');}};
+$('copyOffer').onclick=()=>copyText($('offerCode').value,$('copyOffer'));
+$('copyAnswer').onclick=()=>copyText($('answerCode').value,$('copyAnswer'));
+async function copyText(t,b){try{await navigator.clipboard.writeText(t);const old=b.textContent;b.textContent='コピーしました';setTimeout(()=>b.textContent=old,1200);}catch{b.textContent='長押しで選択してコピー';}}
+
+function handleMsg(m){
+ if(m.t==='hello'&&role==='host'){
+   if(m.pass!==roomPass){send({t:'reject',reason:'合言葉が違います'});status('相手の合言葉が一致しません。','err');return;}
+   guestName=(m.name||'ゲスト').slice(0,12); authorized=true; send({t:'accept',hostName,guestName}); enterGame(); broadcastGame(); status('参加を許可しました。','ok');
+ } else if(m.t==='accept'&&role==='guest'){hostName=m.hostName;guestName=m.guestName;authorized=true;enterGame();status('合言葉が一致しました。','ok');}
+ else if(m.t==='reject'){status(m.reason||'参加できませんでした','err');}
+ else if(m.t==='game'&&role==='guest'){clientView=m.view;renderGuest();}
+}
+function enterGame(){ $('setup').classList.add('hidden');$('game').classList.remove('hidden');$('rolePill').textContent=role==='host'?'部屋を作った側':'参加側';$('peerPill').textContent='相手: '+(role==='host'?guestName:hostName); if(role==='host'){$('hostControls').classList.remove('hidden');renderHost();}else renderGuest(); }
+
+const suits=['♠','♥','♦','♣'];
+function deck(){const d=[];for(const s of suits)for(let r=2;r<=14;r++)d.push({r,s});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function cardLabel(c){const rs={11:'J',12:'Q',13:'K',14:'A'};return (rs[c.r]||c.r)+c.s;}
+function cardHtml(c){const red=c.s==='♥'||c.s==='♦';return `<div class="playing-card ${red?'red':''}"><span>${cardLabel(c).slice(0,-1)}</span><span>${c.s}</span></div>`;}
+function backs(n){return Array.from({length:n},()=>'<div class="playing-card back"></div>').join('');}
+function renderCards(id,arr){$(id).innerHTML=(arr||[]).map(cardHtml).join('');}
+function lexCmp(a,b){for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x>y?1:-1;}return 0;}
+function eval5(cs){
+ let rs=cs.map(c=>c.r).sort((a,b)=>b-a), cnt={}; rs.forEach(r=>cnt[r]=(cnt[r]||0)+1); const groups=Object.entries(cnt).map(([r,n])=>({r:+r,n})).sort((a,b)=>b.n-a.n||b.r-a.r); const flush=cs.every(c=>c.s===cs[0].s); const uniq=[...new Set(rs)]; if(uniq[0]===14)uniq.push(1); let sh=0; for(let i=0;i<=uniq.length-5;i++)if(uniq[i]-uniq[i+4]===4){sh=uniq[i];break;}
+ if(flush&&sh)return [8,sh]; if(groups[0].n===4)return [7,groups[0].r,groups[1].r]; if(groups[0].n===3&&groups[1].n===2)return [6,groups[0].r,groups[1].r]; if(flush)return [5,...rs]; if(sh)return [4,sh]; if(groups[0].n===3)return [3,groups[0].r,...groups.filter(g=>g.n===1).map(g=>g.r).sort((a,b)=>b-a)];
+ const pairs=groups.filter(g=>g.n===2).map(g=>g.r).sort((a,b)=>b-a); if(pairs.length>=2){const kick=groups.filter(g=>g.n===1).map(g=>g.r).sort((a,b)=>b-a)[0];return [2,pairs[0],pairs[1],kick];} if(pairs.length===1)return [1,pairs[0],...groups.filter(g=>g.n===1).map(g=>g.r).sort((a,b)=>b-a)]; return [0,...rs];
+}
+function combos(a,k){const out=[];function rec(start,cur){if(cur.length===k){out.push(cur.slice());return;}for(let i=start;i<=a.length-(k-cur.length);i++){cur.push(a[i]);rec(i+1,cur);cur.pop();}}rec(0,[]);return out;}
+function best7(cs){let best=null;for(const c of combos(cs,5)){const v=eval5(c);if(!best||lexCmp(v,best)>0)best=v;}return best;}
+const handNames=['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'];
+function bestName(cs){return cs&&cs.length>=5?handNames[best7(cs)[0]]:'';}
+
+$('newRound').onclick=()=>{if(!authorized)return;const d=deck();hostGame.round++;hostGame.phase='preflop';hostGame.community=[];hostGame.hands=[[d.pop(),d.pop()],[d.pop(),d.pop()]];hostGame.deck=d;hostGame.result='';hostGame.handNames=['',''];setButtons();broadcastGame();renderHost();};
+$('flop').onclick=()=>{if(hostGame.phase!=='preflop')return;hostGame.deck.pop();hostGame.community.push(hostGame.deck.pop(),hostGame.deck.pop(),hostGame.deck.pop());hostGame.phase='flop';setButtons();broadcastGame();renderHost();};
+$('turn').onclick=()=>{if(hostGame.phase!=='flop')return;hostGame.deck.pop();hostGame.community.push(hostGame.deck.pop());hostGame.phase='turn';setButtons();broadcastGame();renderHost();};
+$('river').onclick=()=>{if(hostGame.phase!=='turn')return;hostGame.deck.pop();hostGame.community.push(hostGame.deck.pop());hostGame.phase='river';setButtons();broadcastGame();renderHost();};
+$('showdown').onclick=()=>{if(hostGame.phase!=='river')return;const v0=best7([...hostGame.hands[0],...hostGame.community]),v1=best7([...hostGame.hands[1],...hostGame.community]);hostGame.handNames=[handNames[v0[0]],handNames[v1[0]]];const c=lexCmp(v0,v1);if(c>0){hostGame.scores[0]++;hostGame.result=hostName+' の勝ち';}else if(c<0){hostGame.scores[1]++;hostGame.result=guestName+' の勝ち';}else hostGame.result='引き分け';hostGame.phase='showdown';setButtons();broadcastGame();renderHost();};
+function setButtons(){ $('flop').disabled=hostGame.phase!=='preflop';$('turn').disabled=hostGame.phase!=='flop';$('river').disabled=hostGame.phase!=='turn';$('showdown').disabled=hostGame.phase!=='river'; }
+function broadcastGame(){if(!authorized)return;const view={round:hostGame.round,phase:hostGame.phase,community:hostGame.community,myHand:hostGame.hands[1],scores:[hostGame.scores[1],hostGame.scores[0]],result:hostGame.result,showdownHands:hostGame.phase==='showdown'?{me:hostGame.hands[1],peer:hostGame.hands[0]}:null,handNames:hostGame.phase==='showdown'?[hostGame.handNames[1],hostGame.handNames[0]]:['','']};send({t:'game',view});}
+function renderBase(round,community,myHand,peerHand,scores,result,myN,peerN){$('roundPill').textContent='第'+round+'局';renderCards('myCards',myHand);renderCards('community',community);$('peerCards').innerHTML=peerHand?peerHand.map(cardHtml).join(''):(round?backs(2):'');$('scoreMe').textContent='あなた '+scores[0];$('scorePeer').textContent='相手 '+scores[1];$('myHandName').textContent=myN||'';$('peerHandName').textContent=peerN||'';if(result){$('result').textContent=result;$('result').classList.remove('hidden');}else{$('result').classList.add('hidden');}}
+function renderHost(){const show=hostGame.phase==='showdown';const myN=show?hostGame.handNames[0]:(hostGame.community.length>=3?bestName([...hostGame.hands[0],...hostGame.community]):'');renderBase(hostGame.round,hostGame.community,hostGame.hands[0],show?hostGame.hands[1]:null,[hostGame.scores[0],hostGame.scores[1]],hostGame.result,myN,show?hostGame.handNames[1]:'');}
+function renderGuest(){const v=clientView,show=v.phase==='showdown'&&v.showdownHands;const myN=show?v.handNames[0]:(v.community.length>=3?bestName([...(v.myHand||[]),...v.community]):'');renderBase(v.round,v.community,v.myHand||[],show?v.showdownHands.peer:null,v.scores||[0,0],v.result||'',myN,show?v.handNames[1]:'');}
+
+async function initPWA(){
+  const el=$('pwaState');
+  const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  if(!('serviceWorker' in navigator)){
+    el.textContent='このブラウザではオフライン保存機能を利用できません。'; el.className='status err'; return;
+  }
+  if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
+    el.textContent='オフライン保存にはHTTPSのURLから開く必要があります。'; el.className='status err'; return;
+  }
+  try{
+    await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    await navigator.serviceWorker.ready;
+    el.textContent=standalone?'オフライン準備完了・ホーム画面アプリとして起動中':'オフライン準備完了。次に「ホーム画面に追加」をしてください。';
+    el.className='status ok';
+  }catch(e){
+    el.textContent='オフライン保存の準備に失敗しました: '+e.message; el.className='status err';
+  }
+}
+initPWA();
+</script></main></body></html>

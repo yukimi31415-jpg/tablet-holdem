@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Hold'em">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-180.png">
-<title>Hold'em Table</title>
+<title>Hold'em Table Auto</title>
 <style>
 :root{--bg:#072c1f;--panel:#0e4732;--panel2:#123c2e;--line:#2c6b53;--text:#f6fbf8;--muted:#b9d1c7;--accent:#f2c94c;--danger:#ef6b73;--good:#64d39a;--blue:#75a7ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -18,7 +18,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
 button,input,textarea,select{font:inherit}button{border:0;border-radius:14px;padding:13px 17px;font-weight:700;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:var(--accent);color:#25200a}.secondary{background:#dbe9e3;color:#102b21}.ghost{background:#ffffff12;color:var(--text);border:1px solid #ffffff26}.danger{background:var(--danger);color:#261014}.good{background:var(--good);color:#0c2b1b}.blue{background:var(--blue);color:#102448}
 input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px solid #39705a;border-radius:12px;padding:12px;outline:none}textarea{min-height:110px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
 #app{max-width:1180px;margin:0 auto;padding:16px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.brand{font-size:22px;font-weight:800}.status{font-size:13px;color:var(--muted);text-align:right}.grid{display:grid;grid-template-columns:1.45fr .85fr;gap:14px}.panel{background:#0a2d22dd;border:1px solid #ffffff17;border-radius:20px;padding:16px;box-shadow:0 16px 40px #0004;backdrop-filter:blur(8px)}.panel h2,.panel h3{margin:0 0 12px}.sub{color:var(--muted);font-size:14px;line-height:1.55}.stack{display:flex;flex-direction:column;gap:10px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row .fit{flex:0 0 auto}.hidden{display:none!important}.big-choice{min-height:92px;font-size:18px}.note{padding:11px 12px;border-radius:12px;background:#ffffff0c;color:var(--muted);font-size:13px;line-height:1.5}.warn{background:#5f481d66;color:#ffe8a3;border:1px solid #9b762f}.ok{background:#174c3566;color:#baf0d1;border:1px solid #2c8a5f}
-.table{background:radial-gradient(ellipse at center,#137a50 0,#0d6543 56%,#07402d 100%);border:8px solid #6d3f22;border-radius:48% / 20%;min-height:430px;padding:28px 22px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 4px #b17a46,inset 0 0 40px #0008}.phase{position:absolute;top:18px;left:50%;transform:translateX(-50%);background:#061f17bb;padding:8px 14px;border-radius:999px;font-weight:800}.timer{position:absolute;top:18px;right:22px;background:#061f17bb;padding:8px 12px;border-radius:999px;font-variant-numeric:tabular-nums}.board{display:flex;gap:8px;justify-content:center;min-height:104px;align-items:center}.card{width:68px;height:96px;border-radius:10px;background:#fff;color:#111;display:flex;flex-direction:column;justify-content:space-between;padding:6px 7px;font-weight:800;box-shadow:0 5px 12px #0005;border:1px solid #ddd}.card.red{color:#d62828}.card .rank{font-size:21px;line-height:1}.card .suit{font-size:26px;align-self:flex-end;line-height:1}.card.back{background:repeating-linear-gradient(45deg,#1f4d86,#1f4d86 6px,#dce8f8 6px,#dce8f8 10px);border:4px solid #fff}.card.placeholder{background:#ffffff16;border:2px dashed #ffffff40;box-shadow:none}.your-cards{display:flex;gap:8px;justify-content:center;margin:14px 0}.hand-name{text-align:center;font-weight:800;color:#ffefb0;min-height:23px}.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}.controls button{min-width:150px}.players{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px;margin-top:22px;width:100%}.player{background:#061f17cc;border:1px solid #ffffff20;border-radius:14px;padding:10px;min-height:75px}.player.me{outline:2px solid var(--accent)}.player.folded{opacity:.52}.pname{font-weight:800;display:flex;gap:6px;align-items:center}.badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.badge{font-size:11px;padding:3px 6px;border-radius:999px;background:#ffffff16}.badge.d{background:var(--accent);color:#211d0a}.badge.ready{background:#245f46}.badge.off{background:#60323a}.history{max-height:390px;overflow:auto;padding-right:4px}.event{padding:8px 0;border-bottom:1px solid #ffffff10;font-size:13px;line-height:1.45}.event:last-child{border:0}.connection-card{border:1px solid #ffffff1e;border-radius:14px;padding:12px;background:#ffffff08}.code-actions{display:flex;gap:8px;margin-top:8px}.code-actions button{padding:9px 11px;font-size:13px}.winner{font-size:19px;font-weight:800;color:#ffed9b;text-align:center;margin:12px 0}.showdown-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.showdown-hand{background:#051b14aa;border:1px solid #ffffff17;border-radius:12px;padding:10px}.mini-cards{display:flex;gap:5px}.mini-card{background:#fff;color:#111;border-radius:6px;padding:3px 5px;font-weight:800}.mini-card.red{color:#d62828}.footer{margin-top:16px;color:#88a99a;font-size:12px;text-align:center}.updatebar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;background:#172a22;border:1px solid #476657;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px #0007}.updatebar button{flex:0 0 auto}
+.table{background:radial-gradient(ellipse at center,#137a50 0,#0d6543 56%,#07402d 100%);border:8px solid #6d3f22;border-radius:48% / 20%;min-height:430px;padding:28px 22px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 4px #b17a46,inset 0 0 40px #0008}.phase{position:absolute;top:18px;left:50%;transform:translateX(-50%);background:#061f17bb;padding:8px 14px;border-radius:999px;font-weight:800}.timer{position:absolute;top:18px;right:22px;background:#061f17bb;padding:8px 12px;border-radius:999px;font-variant-numeric:tabular-nums}.board{display:flex;gap:8px;justify-content:center;min-height:104px;align-items:center}.card{width:68px;height:96px;border-radius:10px;background:#fff;color:#111;display:flex;flex-direction:column;justify-content:space-between;padding:6px 7px;font-weight:800;box-shadow:0 5px 12px #0005;border:1px solid #ddd}.card.red{color:#d62828}.card .rank{font-size:21px;line-height:1}.card .suit{font-size:26px;align-self:flex-end;line-height:1}.card.back{background:repeating-linear-gradient(45deg,#1f4d86,#1f4d86 6px,#dce8f8 6px,#dce8f8 10px);border:4px solid #fff}.card.placeholder{background:#ffffff16;border:2px dashed #ffffff40;box-shadow:none}.your-cards{display:flex;gap:8px;justify-content:center;margin:14px 0}.hand-name{text-align:center;font-weight:800;color:#ffefb0;min-height:23px}.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}.controls button{min-width:150px}.players{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px;margin-top:22px;width:100%}.player{background:#061f17cc;border:1px solid #ffffff20;border-radius:14px;padding:10px;min-height:75px}.player.me{outline:2px solid var(--accent)}.player.folded{opacity:.52}.pname{font-weight:800;display:flex;gap:6px;align-items:center}.badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.badge{font-size:11px;padding:3px 6px;border-radius:999px;background:#ffffff16}.badge.d{background:var(--accent);color:#211d0a}.badge.ready{background:#245f46}.badge.off{background:#60323a}.history{max-height:390px;overflow:auto;padding-right:4px}.event{padding:8px 0;border-bottom:1px solid #ffffff10;font-size:13px;line-height:1.45}.event:last-child{border:0}.connection-card{border:1px solid #ffffff1e;border-radius:14px;padding:12px;background:#ffffff08}.code-actions{display:flex;gap:8px;margin-top:8px}.code-actions button{padding:9px 11px;font-size:13px}.winner{font-size:19px;font-weight:800;color:#ffed9b;text-align:center;margin:12px 0}.showdown-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.showdown-hand{background:#051b14aa;border:1px solid #ffffff17;border-radius:12px;padding:10px}.mini-cards{display:flex;gap:5px}.mini-card{background:#fff;color:#111;border-radius:6px;padding:3px 5px;font-weight:800}.mini-card.red{color:#d62828}.footer{margin-top:16px;color:#88a99a;font-size:12px;text-align:center}.updatebar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;background:#172a22;border:1px solid #476657;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px #0007}.updatebar button{flex:0 0 auto}.setupbox{border:1px solid #ffffff20;border-radius:14px;padding:12px;background:#061f1788}.roomcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}.tiny{font-size:12px;color:var(--muted)}.room-share{display:flex;gap:8px;flex-wrap:wrap}.room-share button{flex:1;min-width:150px}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.table{min-height:390px;border-radius:34px}.players{grid-template-columns:repeat(2,minmax(120px,1fr))}.card{width:58px;height:82px}.card .rank{font-size:18px}.card .suit{font-size:22px}.showdown-grid{grid-template-columns:1fr}}
 @media(max-width:480px){#app{padding:10px}.panel{padding:13px;border-radius:16px}.table{padding:24px 10px}.controls button{min-width:125px}.card{width:52px;height:74px;padding:5px}.players{gap:6px}.player{padding:8px}.brand{font-size:19px}}
 </style>
@@ -32,44 +32,28 @@ input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px
 
   <section id="home" class="panel stack">
     <h2>文化祭向け・賭けなしホールデム</h2>
-    <div class="sub">最大8人。ホストも通常プレイヤーとして参加します。得点・チップ・Bet / Call / Raise / All-in はありません。各ストリートでは「チェック（続行）」か「フォールド」を選び、ホストだけが次のコミュニティカードを公開します。</div>
+    <div class="sub">最大8人。全員が同じ合言葉を入力すると自動で同じ部屋につながります。最初に入った端末がホストになり、ホスト本人も通常プレイヤーとして参加します。</div>
     <label>表示名<input id="nameInput" maxlength="16" placeholder="例：だいふく"></label>
-    <div class="row">
-      <button id="hostBtn" class="primary big-choice">部屋を作る</button>
-      <button id="guestBtn" class="secondary big-choice">部屋に参加する</button>
-    </div>
+    <label>合言葉<input id="roomInput" maxlength="32" placeholder="例：BUNKA2026" autocapitalize="characters"></label>
+    <label class="row" style="justify-content:flex-start"><input id="autoJoinInput" type="checkbox" style="width:auto;flex:0 0 auto"><span style="flex:0 1 auto">次回からこの部屋へ自動入室</span></label>
+    <button id="joinBtn" class="primary big-choice">合言葉で入室</button>
     <div id="compat" class="note">ブラウザ互換性を確認中…</div>
-  </section>
-
-  <section id="hostLobby" class="panel stack hidden">
-    <div class="row"><div><h2>ホスト・ロビー</h2><div class="sub">あなたもプレイヤーです。最大8人まで接続できます。</div></div><button id="hostBack" class="ghost fit">最初に戻る</button></div>
-    <div id="hostPlayers" class="stack"></div>
-    <div class="connection-card stack">
-      <h3>参加者を1人追加</h3>
-      <div class="sub">「参加コード」を相手へ共有 → 相手が作った「返答コード」をここへ貼り付けます。接続する人数ごとに1回ずつ行います。</div>
-      <button id="makeOffer" class="blue">① 参加コードを作る</button>
-      <textarea id="offerOut" readonly placeholder="ここに参加コードが出ます"></textarea>
-      <div class="code-actions"><button class="ghost" id="copyOffer">コピー</button><button class="ghost" id="shareOffer">共有</button></div>
-      <textarea id="answerIn" placeholder="③ 相手の返答コードを貼り付け"></textarea>
-      <button id="acceptAnswer" class="good">④ 接続を完了する</button>
-      <div id="hostConnMsg" class="note">まだ接続コードを作っていません。</div>
-    </div>
-    <button id="hostEnterTable" class="primary">テーブルへ</button>
-  </section>
-
-  <section id="guestConnect" class="panel stack hidden">
-    <div class="row"><div><h2>参加する</h2><div class="sub">ホストから受け取った参加コードを貼り付けます。</div></div><button id="guestBack" class="ghost fit">最初に戻る</button></div>
-    <textarea id="offerIn" placeholder="① ホストの参加コードを貼り付け"></textarea>
-    <button id="makeAnswer" class="blue">② 返答コードを作る</button>
-    <textarea id="answerOut" readonly placeholder="ここに返答コードが出ます"></textarea>
-    <div class="code-actions"><button class="ghost" id="copyAnswer">コピー</button><button class="ghost" id="shareAnswer">共有</button></div>
-    <div id="guestConnMsg" class="note">接続すると自動でテーブルへ移動します。</div>
+    <div id="joinMsg" class="note">接続サーバーを初回だけ設定すると、以後は合言葉だけで自動接続できます。</div>
+    <details class="setupbox" id="serverSetup">
+      <summary style="font-weight:800;cursor:pointer">初回設定：接続サーバー</summary>
+      <div class="stack" style="margin-top:10px">
+        <div class="sub">Cloudflare Worker の WebSocket URL を1回だけ保存します。例：<span class="roomcode">wss://holdem-signal.example.workers.dev/ws</span></div>
+        <input id="signalUrlInput" placeholder="wss://....workers.dev/ws" inputmode="url" autocapitalize="off" autocomplete="off">
+        <div class="row"><button id="saveSignalBtn" class="good">この端末に保存</button><button id="shareSetupBtn" class="ghost">他の端末へ設定URLを共有</button></div>
+        <div id="signalMsg" class="tiny"></div>
+      </div>
+    </details>
   </section>
 
   <section id="game" class="hidden">
     <div class="grid">
       <div class="panel">
-        <div class="row" style="margin-bottom:10px"><div><h2 id="roomTitle">テーブル</h2><div class="sub" id="handMeta">待機中</div></div><button id="newHandBtn" class="primary fit">新しいハンド</button></div>
+        <div class="row" style="margin-bottom:10px"><div><h2 id="roomTitle">テーブル</h2><div class="sub" id="handMeta">待機中</div></div><button id="newHandBtn" class="primary fit">新しいハンド</button><button id="leaveBtn" class="ghost fit">退出</button></div>
         <div class="table">
           <div class="phase" id="phaseLabel">LOBBY</div>
           <div class="timer" id="timerLabel">--</div>
@@ -92,41 +76,53 @@ input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px
         <div class="connection-card stack">
           <h3>接続状態</h3>
           <div id="connectionSummary" class="sub"></div>
-          <button id="reconnectBtn" class="ghost hidden">再接続画面を開く</button>
+          <div id="roomPhrase" class="tiny"></div>
+          <button id="reconnectBtn" class="ghost hidden">再接続する</button>
         </div>
       </div>
     </div>
-    <div class="footer">賭け・換金・景品交換機能はありません。ホスト端末は通信上の管理役ですが、画面上では他プレイヤーの手札をショーダウン前に表示しません。</div>
+    <div class="footer">賭け・換金・景品交換機能はありません。合言葉は端末内でSHA-256化され、待ち合わせサーバーには合言葉そのものを送りません。カード情報はWebRTCで端末間通信します。</div>
   </section>
 </div>
 <div id="updateBar" class="updatebar hidden"><div style="flex:1">新しい版があります。</div><button id="reloadUpdate" class="primary">更新</button></div>
 <script>
 'use strict';
-const APP_VERSION='3.0.0';
+const APP_VERSION='4.0.0';
 const MAX_PLAYERS=8;
 const TURN_SECONDS=30;
 const PHASES={lobby:'待機中',preflop:'PRE-FLOP',flop:'FLOP',turn:'TURN',river:'RIVER',showdown:'SHOWDOWN',handEnd:'HAND END'};
 const SUITS=['S','H','D','C'];
 const SUIT_SYMBOL={S:'♠',H:'♥',D:'♦',C:'♣'};
 const els={};
-['home','hostLobby','guestConnect','game','nameInput','hostBtn','guestBtn','compat','hostBack','guestBack','hostPlayers','makeOffer','offerOut','copyOffer','shareOffer','answerIn','acceptAnswer','hostConnMsg','hostEnterTable','offerIn','makeAnswer','answerOut','copyAnswer','shareAnswer','guestConnMsg','roomTitle','handMeta','newHandBtn','phaseLabel','timerLabel','board','yourCards','yourHandName','winnerText','continueBtn','foldBtn','revealBtn','players','showdown','history','connectionSummary','reconnectBtn','netStatus','updateBar','reloadUpdate'].forEach(id=>els[id]=document.getElementById(id));
+['home','game','nameInput','roomInput','autoJoinInput','joinBtn','compat','joinMsg','serverSetup','signalUrlInput','saveSignalBtn','shareSetupBtn','signalMsg','roomTitle','handMeta','newHandBtn','leaveBtn','phaseLabel','timerLabel','board','yourCards','yourHandName','winnerText','continueBtn','foldBtn','revealBtn','players','showdown','history','connectionSummary','roomPhrase','reconnectBtn','netStatus','updateBar','reloadUpdate'].forEach(id=>els[id]=document.getElementById(id));
 
 let mode=null; // host | guest
 let myId=localStorage.getItem('holdemPlayerId')||makeId();
 localStorage.setItem('holdemPlayerId',myId);
 let myName=localStorage.getItem('holdemPlayerName')||'';
 els.nameInput.value=myName;
+let roomPhrase='';
+let roomHash='';
+let signalSocket=null;
+let signalConnected=false;
+let signalRole=null;
+let reconnectTimer=null;
 let session=null;
-let hostPeers=new Map(); // slotId -> {pc,dc,playerId}
+let hostPeers=new Map(); // peerId -> {pc,dc,pending:[]}
 let hostChannels=new Map(); // playerId -> dc
-let guestPC=null, guestDC=null;
+let guestPC=null, guestDC=null, guestHostId=null, guestPending=[];
 let clientState=null;
-let lastOfferSlot=null;
 let timerInterval=null;
+let signalBase=localStorage.getItem('holdemSignalUrl')||'';
+els.signalUrlInput.value=signalBase;
+let autoRoomHash=localStorage.getItem('holdemAutoRoomHash')||'';
+let autoRoomLabel=localStorage.getItem('holdemAutoRoomLabel')||'';
+if(autoRoomLabel) els.roomInput.value=autoRoomLabel;
+els.autoJoinInput.checked=localStorage.getItem('holdemAutoJoin')==='1';
 
 function makeId(){return (crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(16)).join('-'));}
 function nowTime(){return new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-function showOnly(id){['home','hostLobby','guestConnect','game'].forEach(x=>els[x].classList.toggle('hidden',x!==id));}
+function showOnly(id){['home','game'].forEach(x=>els[x].classList.toggle('hidden',x!==id));}
 function setMsg(el,msg,type=''){el.textContent=msg;el.className='note'+(type?' '+type:'');}
 function safeName(v){return (v||'').trim().slice(0,16)||'Player';}
 function persistIdentity(){myName=safeName(els.nameInput.value);localStorage.setItem('holdemPlayerName',myName);}
@@ -195,34 +191,96 @@ els.players.innerHTML=st.players.sort((a,b)=>a.seat-b.seat).map(p=>{const badges
 const wn=st.winners?.map(id=>st.players.find(p=>p.id===id)?.name).filter(Boolean)||[];els.winnerText.textContent=(st.phase==='showdown'||st.phase==='handEnd')&&wn.length?`勝者：${wn.join('・')}`:'';
 els.showdown.innerHTML='';for(const [pid,h] of Object.entries(st.showdownHands||{})){const p=st.players.find(x=>x.id===pid);if(!p)continue;els.showdown.insertAdjacentHTML('beforeend',`<div class="showdown-hand"><div style="font-weight:800;margin-bottom:6px">${escapeHtml(p.name)} ・ ${escapeHtml(h.evaluation?.name||'')}</div><div class="mini-cards">${h.cards.map(c=>cardHTML(c,true)).join('')}</div></div>`);}
 els.history.innerHTML=(st.history||[]).map(e=>`<div class="event"><span style="color:#89aa9a">${e.t}</span> ${escapeHtml(e.text)}</div>`).join('')||'<div class="sub">まだ履歴はありません。</div>';
-els.connectionSummary.textContent=`接続中 ${st.players.filter(p=>p.connected).length}/${st.players.length}人 ・ 最大${MAX_PLAYERS}人`;
+els.connectionSummary.textContent=`接続中 ${st.players.filter(p=>p.connected).length}/${st.players.length}人 ・ 最大${MAX_PLAYERS}人`;els.roomPhrase.textContent=roomPhrase?`合言葉：${roomPhrase}`:'';
 }
-function renderHost(){if(mode!=='host'||!session)return;const st=sanitizeState(myId);clientState=st;renderCommon(st,myId,true);els.hostPlayers.innerHTML=session.players.sort((a,b)=>a.seat-b.seat).map(p=>`<div class="connection-card"><b>${escapeHtml(p.name)}</b>　${p.isHost?'ホスト本人':p.connected?'接続中':'切断中'}　<span class="sub">席${p.seat+1}</span></div>`).join('');}
+function renderHost(){if(mode!=='host'||!session)return;const st=sanitizeState(myId);clientState=st;renderCommon(st,myId,true);}
 function renderGuest(){if(mode!=='guest'||!clientState)return;renderCommon(clientState,myId,false);}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
-async function hostCreateOffer(){if(!session)return;if(session.players.length>=MAX_PLAYERS){setMsg(els.hostConnMsg,'最大8人です。','warn');return;}const slot=makeId();const pc=new RTCPeerConnection({iceServers:[]});const dc=pc.createDataChannel('holdem',{ordered:true});hostPeers.set(slot,{pc,dc,playerId:null});wireHostChannel(slot,dc);pc.onconnectionstatechange=()=>{const rec=hostPeers.get(slot);if(['failed','closed','disconnected'].includes(pc.connectionState)&&rec?.playerId){const p=playerById(rec.playerId);if(p){p.connected=false;addHistory(`${p.name} の接続が切れました。`);hostChannels.delete(p.id);broadcast();}}};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await waitIce(pc);els.offerOut.value=encodeObj({v:1,kind:'offer',slot,sessionId:session.id,sdp:pc.localDescription.sdp});lastOfferSlot=slot;els.answerIn.value='';setMsg(els.hostConnMsg,'参加コードを相手へ送り、返答コードを受け取ってください。','ok');}
-function wireHostChannel(slot,dc){dc.onopen=()=>{try{dc.send(JSON.stringify({type:'welcome',sessionId:session.id,version:APP_VERSION}));}catch{}};dc.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='hello')hostHello(slot,m);else if(m.type==='action')applyAction(m.playerId,m.action);else if(m.type==='requestNewHand')dealNewHand();};}
-function hostHello(slot,m){const rec=hostPeers.get(slot);if(!rec)return;let p=playerById(m.playerId);if(p){p.name=safeName(m.name);p.connected=true;rec.playerId=p.id;hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が再接続しました。`);}else{if(session.players.length>=MAX_PLAYERS){rec.dc.send(JSON.stringify({type:'error',message:'この部屋は満員です。'}));return;}p={id:m.playerId,name:safeName(m.name),seat:nextSeat(),connected:true,isHost:false,inHand:false,folded:false,ready:false,hole:[]};session.players.push(p);rec.playerId=p.id;hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が参加しました。`);}broadcast();}
+async function sha256Hex(text){const data=new TextEncoder().encode(text);const hash=await crypto.subtle.digest('SHA-256',data);return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+function normalizeSignalUrl(v){v=(v||'').trim();if(!v)return'';if(v.startsWith('https://'))v='wss://'+v.slice(8);else if(v.startsWith('http://'))v='ws://'+v.slice(7);if(!/^wss?:\/\//i.test(v))v='wss://'+v;try{const u=new URL(v);if(!u.pathname||u.pathname==='/')u.pathname='/ws';return u.toString().replace(/\/$/,'');}catch{return'';}}
+function saveSignalUrl(){const v=normalizeSignalUrl(els.signalUrlInput.value);if(!v){els.signalMsg.textContent='URLの形式を確認してください。';return false;}signalBase=v;localStorage.setItem('holdemSignalUrl',v);els.signalUrlInput.value=v;els.signalMsg.textContent='この端末に保存しました。';return true;}
+async function shareSetup(){if(!signalBase&&!saveSignalUrl())return;const u=new URL(location.href);u.searchParams.set('signal',signalBase);const text=u.toString();if(navigator.share){try{await navigator.share({title:'Hold’em 初回設定',text,url:text});return;}catch{}}await copyText(text);alert('設定URLをコピーしました。別のiPadでSafariから開いてください。');}
+function sendSignal(to,data){if(signalSocket?.readyState===WebSocket.OPEN)signalSocket.send(JSON.stringify({type:'signal',to,data}));}
+function rtcConfig(){return {iceServers:[]};}
+function closeAllPeers(){for(const r of hostPeers.values())try{r.pc.close();}catch{}hostPeers.clear();hostChannels.clear();try{guestPC?.close();}catch{}guestPC=null;guestDC=null;guestPending=[];}
+function disconnectSignal(manual=false){clearTimeout(reconnectTimer);reconnectTimer=null;signalConnected=false;try{signalSocket?.close(1000,manual?'leave':'reset');}catch{}signalSocket=null;closeAllPeers();}
+async function enterByPhrase(hashOverride=''){
+  persistIdentity();
+  const phrase=(els.roomInput.value||'').trim();
+  if(!signalBase){setMsg(els.joinMsg,'先に「初回設定：接続サーバー」を開いてURLを保存してください。','warn');els.serverSetup.open=true;return;}
+  if(!myName){setMsg(els.joinMsg,'表示名を入力してください。','warn');return;}
+  if(!hashOverride&&phrase.length<4){setMsg(els.joinMsg,'合言葉は4文字以上にしてください。','warn');return;}
+  roomPhrase=phrase||autoRoomLabel||'保存済みの部屋';
+  roomHash=hashOverride||await sha256Hex(phrase.normalize('NFKC').toUpperCase());
+  if(els.autoJoinInput.checked){localStorage.setItem('holdemAutoJoin','1');localStorage.setItem('holdemAutoRoomHash',roomHash);localStorage.setItem('holdemAutoRoomLabel',roomPhrase);}else{localStorage.removeItem('holdemAutoJoin');localStorage.removeItem('holdemAutoRoomHash');localStorage.removeItem('holdemAutoRoomLabel');}
+  setMsg(els.joinMsg,'同じ合言葉の部屋を探しています…','ok');
+  connectSignal();
+}
+function connectSignal(){
+  disconnectSignal(false);
+  const u=new URL(signalBase);u.searchParams.set('room',roomHash);u.searchParams.set('client',myId);
+  try{signalSocket=new WebSocket(u.toString());}catch(e){setMsg(els.joinMsg,'接続サーバーURLを確認してください。','warn');return;}
+  els.netStatus.textContent='待ち合わせサーバーへ接続中…';
+  signalSocket.onopen=()=>{signalConnected=true;els.netStatus.textContent='合言葉を照合中…';};
+  signalSocket.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}handleSignalMessage(m);};
+  signalSocket.onclose=e=>{signalConnected=false;if(mode==='guest'&&guestDC?.readyState==='open'){els.netStatus.textContent='ゲーム通信中（待ち合わせサーバーは切断）';return;}if(mode==='host'&&session){els.netStatus.textContent='ゲーム通信中（待ち合わせサーバーは切断）';return;}els.netStatus.textContent='接続が切れました';if(roomHash&&!manualLeaving){clearTimeout(reconnectTimer);reconnectTimer=setTimeout(()=>connectSignal(),2500);}};
+  signalSocket.onerror=()=>{setMsg(els.joinMsg,'待ち合わせサーバーへ接続できません。URLまたは通信環境を確認してください。','warn');};
+}
+let manualLeaving=false;
+async function handleSignalMessage(m){
+  if(m.type==='welcome'){
+    signalRole=m.role;
+    if(m.role==='host'){
+      mode='host';session=newSession();showOnly('game');els.netStatus.textContent='ホストとして入室';renderHost();broadcast();
+    }else{
+      mode='guest';guestHostId=m.hostId||null;els.netStatus.textContent='ホストへ自動接続中…';setMsg(els.joinMsg,'同じ合言葉のホストが見つかりました。自動接続しています…','ok');
+    }
+  } else if(m.type==='peer-joined'&&mode==='host'){
+    createHostPeer(m.peerId);
+  } else if(m.type==='peer-left'&&mode==='host'){
+    const r=hostPeers.get(m.peerId);try{r?.pc.close();}catch{}hostPeers.delete(m.peerId);const p=playerById(m.peerId);if(p){p.connected=false;hostChannels.delete(p.id);addHistory(`${p.name} の接続が切れました。`);broadcast();}
+  } else if(m.type==='promoted-host'){
+    closeAllPeers();mode='host';session=newSession();clientState=null;showOnly('game');els.netStatus.textContent='ホストを引き継ぎました（新しいハンドから再開）';renderHost();broadcast();
+  } else if(m.type==='host-changed'){
+    try{guestPC?.close();}catch{}guestPC=null;guestDC=null;guestPending=[];guestHostId=m.hostId||null;mode='guest';els.netStatus.textContent='新しいホストへ自動再接続中…';
+  } else if(m.type==='host-left'){
+    els.netStatus.textContent='ホストが退出しました';alert('ホストが退出しました。部屋へ入り直してください。');leaveRoom(false);
+  } else if(m.type==='signal'){
+    if(mode==='host') await handleHostSignal(m.from,m.data); else await handleGuestSignal(m.from,m.data);
+  } else if(m.type==='room-full'){
+    setMsg(els.joinMsg,'この部屋は最大8人です。別の合言葉を使ってください。','warn');roomHash='';try{signalSocket?.close(4001,'room full');}catch{}showOnly('home');
+  }
+}
+async function createHostPeer(peerId){
+  if(hostPeers.has(peerId))return;
+  if(session?.players.length>=MAX_PLAYERS){sendSignal(peerId,{kind:'reject',reason:'この部屋は満員です。'});return;}
+  const pc=new RTCPeerConnection(rtcConfig());const dc=pc.createDataChannel('holdem',{ordered:true});const rec={pc,dc,pending:[]};hostPeers.set(peerId,rec);wireHostChannel(peerId,dc);
+  pc.onicecandidate=e=>{if(e.candidate)sendSignal(peerId,{kind:'ice',candidate:e.candidate});};
+  pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState)){const p=playerById(peerId);if(p){p.connected=false;hostChannels.delete(p.id);broadcast();}}};
+  const offer=await pc.createOffer();await pc.setLocalDescription(offer);sendSignal(peerId,{kind:'offer',sdp:pc.localDescription});
+}
+function wireHostChannel(peerId,dc){dc.onopen=()=>{try{dc.send(JSON.stringify({type:'welcome',sessionId:session.id,version:APP_VERSION}));}catch{}};dc.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='hello')hostHello(peerId,m);else if(m.type==='action')applyAction(m.playerId,m.action);else if(m.type==='requestNewHand')dealNewHand();};dc.onclose=()=>{const p=playerById(peerId);if(p){p.connected=false;hostChannels.delete(p.id);broadcast();}};}
+function hostHello(peerId,m){const rec=hostPeers.get(peerId);if(!rec)return;let p=playerById(m.playerId);if(p){p.name=safeName(m.name);p.connected=true;hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が再接続しました。`);}else{if(session.players.length>=MAX_PLAYERS){rec.dc.send(JSON.stringify({type:'error',message:'この部屋は満員です。'}));return;}p={id:m.playerId,name:safeName(m.name),seat:nextSeat(),connected:true,isHost:false,inHand:false,folded:false,ready:false,hole:[]};session.players.push(p);hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が参加しました。`);}broadcast();}
 function nextSeat(){for(let i=0;i<MAX_PLAYERS;i++)if(!session.players.some(p=>p.seat===i))return i;return session.players.length;}
-async function hostAcceptAnswer(){try{const obj=decodeObj(els.answerIn.value);if(obj.kind!=='answer'||!obj.slot)throw new Error('返答コードではありません');const rec=hostPeers.get(obj.slot);if(!rec)throw new Error('対応する参加コードが見つかりません。参加コードを作り直してください。');await rec.pc.setRemoteDescription({type:'answer',sdp:obj.sdp});setMsg(els.hostConnMsg,'返答を受け取りました。接続完了を待っています…','ok');}catch(e){setMsg(els.hostConnMsg,'接続できません: '+e.message,'warn');}}
-async function guestMakeAnswer(){try{persistIdentity();const obj=decodeObj(els.offerIn.value);if(obj.kind!=='offer')throw new Error('参加コードではありません');guestPC?.close();guestPC=new RTCPeerConnection({iceServers:[]});guestPC.ondatachannel=e=>{guestDC=e.channel;wireGuestChannel();};guestPC.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(guestPC.connectionState)){els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');}};await guestPC.setRemoteDescription({type:'offer',sdp:obj.sdp});const answer=await guestPC.createAnswer();await guestPC.setLocalDescription(answer);await waitIce(guestPC);els.answerOut.value=encodeObj({v:1,kind:'answer',slot:obj.slot,sdp:guestPC.localDescription.sdp});setMsg(els.guestConnMsg,'返答コードをホストへ返してください。接続すると自動でテーブルへ移動します。','ok');}catch(e){setMsg(els.guestConnMsg,'返答コードを作れません: '+e.message,'warn');}}
+async function handleHostSignal(from,data){let rec=hostPeers.get(from);if(!rec&&data?.kind==='offer')return;if(!rec){await createHostPeer(from);rec=hostPeers.get(from);}if(!rec)return;try{if(data.kind==='answer'){await rec.pc.setRemoteDescription(data.sdp);for(const c of rec.pending.splice(0))await rec.pc.addIceCandidate(c);}else if(data.kind==='ice'){if(rec.pc.remoteDescription)await rec.pc.addIceCandidate(data.candidate);else rec.pending.push(data.candidate);}}catch(e){console.warn('host signal',e);}}
+async function handleGuestSignal(from,data){guestHostId=from;if(data.kind==='reject'){alert(data.reason||'参加できません');return;}try{if(data.kind==='offer'){
+    try{guestPC?.close();}catch{}guestPending=[];guestPC=new RTCPeerConnection(rtcConfig());guestPC.ondatachannel=e=>{guestDC=e.channel;wireGuestChannel();};guestPC.onicecandidate=e=>{if(e.candidate)sendSignal(from,{kind:'ice',candidate:e.candidate});};guestPC.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(guestPC.connectionState)){els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');}};await guestPC.setRemoteDescription(data.sdp);const answer=await guestPC.createAnswer();await guestPC.setLocalDescription(answer);sendSignal(from,{kind:'answer',sdp:guestPC.localDescription});for(const c of guestPending.splice(0))await guestPC.addIceCandidate(c);
+  }else if(data.kind==='ice'){if(guestPC?.remoteDescription)await guestPC.addIceCandidate(data.candidate);else guestPending.push(data.candidate);}}catch(e){console.warn('guest signal',e);}}
 function wireGuestChannel(){if(!guestDC)return;guestDC.onopen=()=>{els.netStatus.textContent='ホストに接続済み';guestDC.send(JSON.stringify({type:'hello',playerId:myId,name:myName}));};guestDC.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='state'){clientState=m.state;showOnly('game');renderGuest();}else if(m.type==='error'){alert(m.message);}};guestDC.onclose=()=>{els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');};}
 function sendGuest(msg){if(guestDC?.readyState==='open')guestDC.send(JSON.stringify(msg));}
 function doAction(action){if(mode==='host')applyAction(myId,action);else sendGuest({type:'action',playerId:myId,action});}
 function requestNewHand(){if(mode==='host')dealNewHand();else sendGuest({type:'requestNewHand',playerId:myId});}
 async function copyText(text){try{await navigator.clipboard.writeText(text);return true;}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}}
-async function shareText(title,text){if(navigator.share){try{await navigator.share({title,text});return;}catch{}}await copyText(text);alert('共有機能を開けなかったため、コードをコピーしました。');}
+function leaveRoom(clearAuto=true){manualLeaving=true;disconnectSignal(true);mode=null;session=null;clientState=null;signalRole=null;roomHash='';roomPhrase='';if(clearAuto){localStorage.removeItem('holdemAutoJoin');localStorage.removeItem('holdemAutoRoomHash');localStorage.removeItem('holdemAutoRoomLabel');els.autoJoinInput.checked=false;}showOnly('home');els.netStatus.textContent=navigator.onLine?'アプリ準備完了':'オフライン';setTimeout(()=>manualLeaving=false,300);}
 
-els.hostBtn.onclick=()=>{if(!rtcSupported())return;persistIdentity();mode='host';session=newSession();els.netStatus.textContent='ホスト端末';showOnly('hostLobby');renderHost();};
-els.guestBtn.onclick=()=>{if(!rtcSupported())return;persistIdentity();mode='guest';els.netStatus.textContent='未接続';showOnly('guestConnect');};
-els.hostBack.onclick=()=>location.reload();els.guestBack.onclick=()=>location.reload();
-els.makeOffer.onclick=hostCreateOffer;els.acceptAnswer.onclick=hostAcceptAnswer;els.makeAnswer.onclick=guestMakeAnswer;els.copyOffer.onclick=async()=>{if(await copyText(els.offerOut.value))setMsg(els.hostConnMsg,'参加コードをコピーしました。','ok');};els.shareOffer.onclick=()=>shareText('Hold’em 参加コード',els.offerOut.value);els.copyAnswer.onclick=async()=>{if(await copyText(els.answerOut.value))setMsg(els.guestConnMsg,'返答コードをコピーしました。','ok');};els.shareAnswer.onclick=()=>shareText('Hold’em 返答コード',els.answerOut.value);
-els.hostEnterTable.onclick=()=>{showOnly('game');renderHost();};els.continueBtn.onclick=()=>doAction('continue');els.foldBtn.onclick=()=>doAction('fold');els.revealBtn.onclick=revealNext;els.newHandBtn.onclick=requestNewHand;els.reconnectBtn.onclick=()=>{if(mode==='guest')showOnly('guestConnect');};
+els.saveSignalBtn.onclick=saveSignalUrl;els.shareSetupBtn.onclick=shareSetup;els.joinBtn.onclick=()=>enterByPhrase();els.continueBtn.onclick=()=>doAction('continue');els.foldBtn.onclick=()=>doAction('fold');els.revealBtn.onclick=revealNext;els.newHandBtn.onclick=requestNewHand;els.leaveBtn.onclick=()=>leaveRoom(true);els.reconnectBtn.onclick=()=>{if(roomHash)connectSignal();else showOnly('home');};
 setInterval(()=>{timeoutCheck();if(clientState){if(mode==='host')renderHost();else renderGuest();}},500);
 
-if(rtcSupported()){setMsg(els.compat,'このブラウザは必要な機能に対応しています。','ok');els.hostBtn.disabled=false;els.guestBtn.disabled=false;}else{setMsg(els.compat,'このブラウザではWebRTCまたは安全な乱数生成が使えません。Safariの最新版で開いてください。','warn');els.hostBtn.disabled=true;els.guestBtn.disabled=true;}
+const signalFromQuery=new URL(location.href).searchParams.get('signal');if(signalFromQuery){const v=normalizeSignalUrl(signalFromQuery);if(v){signalBase=v;localStorage.setItem('holdemSignalUrl',v);els.signalUrlInput.value=v;els.signalMsg.textContent='共有された接続サーバー設定を保存しました。';history.replaceState(null,'',location.pathname+location.hash);}}
+if(rtcSupported()){setMsg(els.compat,'このブラウザは必要な機能に対応しています。','ok');els.joinBtn.disabled=false;}else{setMsg(els.compat,'このブラウザではWebRTCまたは安全な乱数生成が使えません。Safariの最新版で開いてください。','warn');els.joinBtn.disabled=true;}
 els.netStatus.textContent=navigator.onLine?'アプリ準備完了':'オフラインで起動中';window.addEventListener('online',()=>els.netStatus.textContent='オンライン');window.addEventListener('offline',()=>els.netStatus.textContent='オフライン');
+if(rtcSupported()&&signalBase&&els.autoJoinInput.checked&&autoRoomHash&&myName){roomPhrase=autoRoomLabel||'保存済みの部屋';roomHash=autoRoomHash;setTimeout(()=>connectSignal(),350);}
 
 if('serviceWorker' in navigator){window.addEventListener('load',async()=>{try{const reg=await navigator.serviceWorker.register('./sw.js');if(reg.waiting)els.updateBar.classList.remove('hidden');reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)els.updateBar.classList.remove('hidden');});});els.reloadUpdate.onclick=()=>{if(reg.waiting){reg.waiting.postMessage({type:'SKIP_WAITING'});}else location.reload();};navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());}catch(e){console.warn('SW',e);}});}
 </script>

@@ -35,6 +35,12 @@ input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px
     <h2>文化祭向け・仮想チップ対戦ホールデム</h2>
     <div class="sub">最大8人。全員が同じ合言葉を入力すると自動で同じ部屋につながります。最初に入った端末がホストになり、ホスト本人も通常プレイヤーとして参加します。チップはアプリ内だけの仮想ポイントで、実際のお金のやり取りはありません。</div>
     <label>表示名<input id="nameInput" maxlength="16" placeholder="例：だいふく"></label>
+    <label>参加形式
+      <select id="roleSelect">
+        <option value="player" selected>プレイヤーとして参加（対戦する）</option>
+        <option value="spectator">観戦者として参加（対戦せず全員のカードが見られます）</option>
+      </select>
+    </label>
     <label>合言葉<input id="roomInput" maxlength="32" placeholder="例：BUNKA2026" autocapitalize="characters"></label>
     <label class="row" style="justify-content:flex-start"><input id="autoJoinInput" type="checkbox" style="width:auto;flex:0 0 auto"><span style="flex:0 1 auto">次回からこの部屋へ自動入室</span></label>
     <button id="joinBtn" class="primary big-choice">合言葉で入室</button>
@@ -67,7 +73,6 @@ input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px
         </div>
         <div class="table">
           <div class="phase" id="phaseLabel">LOBBY</div>
-          <div class="timer" id="timerLabel">--</div>
           <div class="potbar" id="potBar"></div>
           <div class="board" id="board"></div>
           <div class="your-cards" id="yourCards"></div>
@@ -108,20 +113,20 @@ input,textarea,select{width:100%;background:#061f17;color:var(--text);border:1px
 <div id="updateBar" class="updatebar hidden"><div style="flex:1">新しい版があります。</div><button id="reloadUpdate" class="primary">更新</button></div>
 <script>
 'use strict';
-const APP_VERSION='4.1.0';
+const APP_VERSION='4.2.0';
 const MAX_PLAYERS=8;
-const TURN_SECONDS=30;
 const PHASES={lobby:'待機中',preflop:'PRE-FLOP',flop:'FLOP',turn:'TURN',river:'RIVER',showdown:'SHOWDOWN',handEnd:'HAND END',gameOver:'GAME SET'};
 const SUITS=['S','H','D','C'];
 const SUIT_SYMBOL={S:'♠',H:'♥',D:'♦',C:'♣'};
 const els={};
-['home','game','nameInput','roomInput','autoJoinInput','joinBtn','compat','joinMsg','serverSetup','signalUrlInput','saveSignalBtn','shareSetupBtn','signalMsg','roomTitle','handMeta','newHandBtn','leaveBtn','phaseLabel','timerLabel','potBar','board','yourCards','yourHandName','winnerText','gameOverBox','gameOverTitle','standings','newGameBtn','actionControls','checkCallBtn','foldBtn','raiseControls','raiseInput','raiseBtn','allinBtn','players','showdown','history','connectionSummary','roomPhrase','reconnectBtn','netStatus','updateBar','reloadUpdate','lobbySettings','cfgChips','cfgSB','cfgBB','cfgHands'].forEach(id=>els[id]=document.getElementById(id));
+['home','game','nameInput','roomInput','autoJoinInput','roleSelect','joinBtn','compat','joinMsg','serverSetup','signalUrlInput','saveSignalBtn','shareSetupBtn','signalMsg','roomTitle','handMeta','newHandBtn','leaveBtn','phaseLabel','potBar','board','yourCards','yourHandName','winnerText','gameOverBox','gameOverTitle','standings','newGameBtn','actionControls','checkCallBtn','foldBtn','raiseControls','raiseInput','raiseBtn','allinBtn','players','showdown','history','connectionSummary','roomPhrase','reconnectBtn','netStatus','updateBar','reloadUpdate','lobbySettings','cfgChips','cfgSB','cfgBB','cfgHands'].forEach(id=>els[id]=document.getElementById(id));
 
 let mode=null; // host | guest
 let myId=localStorage.getItem('holdemPlayerId')||makeId();
 localStorage.setItem('holdemPlayerId',myId);
 let myName=localStorage.getItem('holdemPlayerName')||'';
 els.nameInput.value=myName;
+let joinRole='player';
 let roomPhrase='';
 let roomHash='';
 let signalSocket=null;
@@ -159,17 +164,18 @@ function waitIce(pc){if(pc.iceGatheringState==='complete')return Promise.resolve
 function rtcSupported(){return !!(window.RTCPeerConnection&&window.crypto&&crypto.getRandomValues);}
 
 function newSession(){return {id:makeId(),version:APP_VERSION,handNo:0,maxHands:10,startingChips:1000,smallBlind:10,bigBlind:20,configLocked:false,phase:'lobby',board:[],deck:[],burned:[],dealerId:null,sbId:null,bbId:null,actingId:null,currentBet:0,minRaise:20,lastPotTotal:0,finalWinners:[],
-players:[{id:myId,name:myName,seat:0,connected:true,isHost:true,inHand:false,folded:false,allIn:false,hasActed:false,hole:[],chips:1000,bet:0,totalBet:0}],history:[],winners:[],showdownHands:{},deadline:null};}
+players:[{id:myId,name:myName,seat:0,connected:true,isHost:true,inHand:false,folded:false,allIn:false,hasActed:false,hole:[],chips:joinRole==='spectator'?0:1000,bet:0,totalBet:0,chosenSpectator:joinRole==='spectator',busted:false}],history:[],winners:[],showdownHands:{}};}
 function potNow(){return (session?.players||[]).filter(p=>p.inHand).reduce((s,p)=>s+p.totalBet,0);}
-function applyLobbySettings(){if(!session||session.configLocked)return;const chips=Math.max(100,parseInt(els.cfgChips.value)||1000);const sb=Math.max(1,parseInt(els.cfgSB.value)||10);const bb=Math.max(sb+1,parseInt(els.cfgBB.value)||sb*2);const hands=Math.max(1,parseInt(els.cfgHands.value)||10);session.startingChips=chips;session.smallBlind=sb;session.bigBlind=bb;session.minRaise=bb;session.maxHands=hands;for(const p of session.players)p.chips=chips;}
-function resetGame(){if(mode!=='host'||!session)return;session.handNo=0;session.configLocked=false;session.phase='lobby';session.board=[];session.winners=[];session.showdownHands={};session.finalWinners=[];session.dealerId=null;for(const p of session.players){p.chips=session.startingChips;p.inHand=false;p.folded=false;p.allIn=false;p.hasActed=false;p.hole=[];p.bet=0;p.totalBet=0;}addHistory('新しいゲームを開始しました。');broadcast();}
+function applyLobbySettings(){if(!session||session.configLocked)return;const chips=Math.max(100,parseInt(els.cfgChips.value)||1000);const sb=Math.max(1,parseInt(els.cfgSB.value)||10);const bb=Math.max(sb+1,parseInt(els.cfgBB.value)||sb*2);const hands=Math.max(1,parseInt(els.cfgHands.value)||10);session.startingChips=chips;session.smallBlind=sb;session.bigBlind=bb;session.minRaise=bb;session.maxHands=hands;for(const p of session.players)if(!p.chosenSpectator)p.chips=chips;}
+function resetGame(){if(mode!=='host'||!session)return;session.handNo=0;session.configLocked=false;session.phase='lobby';session.board=[];session.winners=[];session.showdownHands={};session.finalWinners=[];session.dealerId=null;for(const p of session.players){if(!p.chosenSpectator){p.chips=session.startingChips;p.busted=false;}p.inHand=false;p.folded=false;p.allIn=false;p.hasActed=false;p.hole=[];p.bet=0;p.totalBet=0;}addHistory('新しいゲームを開始しました。');broadcast();}
 function playerById(id){return session?.players.find(p=>p.id===id)||null;}
 function addHistory(text){if(!session)return;session.history.unshift({t:nowTime(),text});session.history=session.history.slice(0,80);}
 function saveHostState(){if(mode==='host'&&session){try{const copy=structuredClone(session);for(const p of copy.players)p.connected=p.id===myId;localStorage.setItem('holdemHostSession',JSON.stringify(copy));}catch{}}}
 function broadcast(){if(mode!=='host'||!session)return;saveHostState();renderHost();for(const [pid,dc] of hostChannels.entries()){if(dc.readyState==='open'){try{dc.send(JSON.stringify({type:'state',state:sanitizeState(pid)}));}catch{}}}}
-function sanitizeState(forId){const revealAll=session.phase==='showdown'||session.phase==='handEnd'||session.phase==='gameOver';return {id:session.id,handNo:session.handNo,maxHands:session.maxHands,startingChips:session.startingChips,smallBlind:session.smallBlind,bigBlind:session.bigBlind,configLocked:session.configLocked,phase:session.phase,board:session.board,dealerId:session.dealerId,sbId:session.sbId,bbId:session.bbId,actingId:session.actingId,currentBet:session.currentBet,minRaise:session.minRaise,pot:potNow(),lastPotTotal:session.lastPotTotal,finalWinners:session.finalWinners,players:session.players.map(p=>({id:p.id,name:p.name,seat:p.seat,connected:p.connected,isHost:p.isHost,inHand:p.inHand,folded:p.folded,allIn:p.allIn,hasActed:p.hasActed,chips:p.chips,bet:p.bet,totalBet:p.totalBet})),history:session.history,winners:session.winners,deadline:session.deadline,myHole:playerById(forId)?.hole||[],showdownHands:revealAll?session.showdownHands:{}};}
+function sanitizeState(forId){const revealAll=session.phase==='showdown'||session.phase==='handEnd'||session.phase==='gameOver';const viewer=playerById(forId);const isSpectatorView=!!(viewer&&(viewer.chosenSpectator||viewer.busted));const spectateHoles=isSpectatorView?Object.fromEntries(session.players.filter(p=>p.inHand&&p.hole.length).map(p=>[p.id,p.hole])):{};
+return {id:session.id,handNo:session.handNo,maxHands:session.maxHands,startingChips:session.startingChips,smallBlind:session.smallBlind,bigBlind:session.bigBlind,configLocked:session.configLocked,phase:session.phase,board:session.board,dealerId:session.dealerId,sbId:session.sbId,bbId:session.bbId,actingId:session.actingId,currentBet:session.currentBet,minRaise:session.minRaise,pot:potNow(),lastPotTotal:session.lastPotTotal,finalWinners:session.finalWinners,isSpectatorView,players:session.players.map(p=>({id:p.id,name:p.name,seat:p.seat,connected:p.connected,isHost:p.isHost,inHand:p.inHand,folded:p.folded,allIn:p.allIn,hasActed:p.hasActed,chips:p.chips,bet:p.bet,totalBet:p.totalBet,chosenSpectator:p.chosenSpectator,busted:p.busted})),history:session.history,winners:session.winners,myHole:playerById(forId)?.hole||[],showdownHands:revealAll?session.showdownHands:{},spectateHoles};}
 function activeInHand(){return session.players.filter(p=>p.inHand&&!p.folded);}
-function eligibleForNewHand(){return session.players.filter(p=>p.connected&&p.chips>0);}
+function eligibleForNewHand(){return session.players.filter(p=>p.connected&&p.chips>0&&!p.chosenSpectator&&!p.busted);}
 function nextDealer(players){if(!players.length)return null;if(!session.dealerId)return players[0].id;const idx=players.findIndex(p=>p.id===session.dealerId);for(let k=1;k<=players.length;k++){const p=players[(Math.max(idx,0)+k)%players.length];if(p.connected)return p.id;}return players[0].id;}
 function playersInHandOrder(){return [...session.players].filter(p=>p.inHand).sort((a,b)=>a.seat-b.seat);}
 function nextActor(fromId){const order=playersInHandOrder();if(!order.length)return null;const idx=order.findIndex(p=>p.id===fromId);for(let k=1;k<=order.length;k++){const cand=order[(idx+k+order.length)%order.length];if(!cand.folded&&!cand.allIn)return cand.id;}return null;}
@@ -178,38 +184,41 @@ function postBlinds(){const order=playersInHandOrder();const n=order.length;let 
 const sbPaid=postBet(sbP,session.smallBlind);const bbPaid=postBet(bbP,session.bigBlind);session.currentBet=Math.max(sbP.bet,bbP.bet);session.minRaise=session.bigBlind;session.sbId=sbP.id;session.bbId=bbP.id;addHistory(`${sbP.name} がSB(${sbPaid})、${bbP.name} がBB(${bbPaid})を支払いました。`);}
 function dealNewHand(){if(mode!=='host'||!session)return;if(session.phase==='gameOver')return;
 if(!session.configLocked){applyLobbySettings();session.configLocked=true;}
-const ep=eligibleForNewHand();if(ep.length<2){addHistory('チップを持つ接続プレイヤーが2人以上必要です。');broadcast();return;}
+const ep=eligibleForNewHand();
+if(ep.length<2){
+  if(session.configLocked&&session.handNo>0){const competitors=session.players.filter(p=>!p.chosenSpectator);const maxChips=Math.max(...competitors.map(p=>p.chips));session.phase='gameOver';session.finalWinners=competitors.filter(p=>p.chips===maxChips).map(p=>p.id);addHistory(`対戦できるプレイヤーが1人以下になったためゲーム終了。最終トップ：${competitors.filter(p=>p.chips===maxChips).map(p=>p.name).join('・')}（${maxChips}pt）`);broadcast();return;}
+  addHistory('チップを持つ接続プレイヤーが2人以上必要です。');broadcast();return;
+}
 session.handNo++;session.phase='preflop';session.board=[];session.deck=deck52();session.burned=[];session.winners=[];session.showdownHands={};session.lastPotTotal=0;
 session.dealerId=nextDealer(ep);
 for(const p of session.players){p.inHand=ep.includes(p);p.folded=false;p.allIn=false;p.hasActed=false;p.hole=[];p.bet=0;p.totalBet=0;}
 const seats=[...session.players].filter(p=>p.inHand).sort((a,b)=>a.seat-b.seat);let di=seats.findIndex(p=>p.id===session.dealerId);for(let round=0;round<2;round++){for(let k=1;k<=seats.length;k++){const p=seats[(di+k)%seats.length];p.hole.push(session.deck.pop());}}
 postBlinds();session.actingId=nextActor(session.bbId);
-setDeadline();addHistory(`Hand #${session.handNo} 開始。Dealer: ${playerById(session.dealerId)?.name||'?'}`);broadcast();}
-function setDeadline(){session.deadline=TURN_SECONDS>0?Date.now()+TURN_SECONDS*1000:null;}
+addHistory(`Hand #${session.handNo} 開始。Dealer: ${playerById(session.dealerId)?.name||'?'}`);broadcast();}
 function burn(){if(session.deck.length)session.burned.push(session.deck.pop());}
 function resetStreetBets(){session.currentBet=0;session.minRaise=session.bigBlind;for(const p of session.players){if(p.inHand&&!p.folded){p.bet=0;p.hasActed=p.allIn?true:false;}}}
 function bettingRoundClosed(){const contenders=session.players.filter(p=>p.inHand&&!p.folded);if(contenders.length<=1)return true;const canAct=contenders.filter(p=>!p.allIn);return canAct.every(p=>p.hasActed&&p.bet===session.currentBet);}
 function dealNextStreet(){burn();if(session.phase==='preflop'){session.board.push(session.deck.pop(),session.deck.pop(),session.deck.pop());session.phase='flop';addHistory('フロップを公開。');}else if(session.phase==='flop'){session.board.push(session.deck.pop());session.phase='turn';addHistory('ターンを公開。');}else if(session.phase==='turn'){session.board.push(session.deck.pop());session.phase='river';addHistory('リバーを公開。');}}
-function proceedAfterAction(){if(!bettingRoundClosed()){session.actingId=nextActor(session.actingId);setDeadline();broadcast();return;}
+function proceedAfterAction(){if(!bettingRoundClosed()){session.actingId=nextActor(session.actingId);broadcast();return;}
 const contenders=session.players.filter(p=>p.inHand&&!p.folded);
 if(contenders.length<=1){if(contenders.length===1)finishByFold(contenders[0]);else broadcast();return;}
 if(session.phase==='river'){finishShowdown();return;}
 dealNextStreet();
 const canAct=contenders.filter(p=>!p.allIn);
 if(canAct.length<=1){proceedAfterAction();return;}
-resetStreetBets();session.actingId=nextActor(session.dealerId);setDeadline();broadcast();}
+resetStreetBets();session.actingId=nextActor(session.dealerId);broadcast();}
 function computePots(){const contributors=session.players.filter(p=>p.inHand&&p.totalBet>0);const levels=[...new Set(contributors.map(p=>p.totalBet))].sort((a,b)=>a-b);let prevLevel=0;const pots=[];for(const level of levels){let amount=0;for(const p of contributors){if(p.totalBet>prevLevel)amount+=Math.min(p.totalBet,level)-prevLevel;}const eligibleIds=contributors.filter(p=>p.totalBet>=level&&!p.folded).map(p=>p.id);pots.push({amount,eligibleIds});prevLevel=level;}return pots;}
 function distributePots(pots,evalMap){const results=[];for(const pot of pots){if(pot.amount<=0)continue;const players=pot.eligibleIds.map(id=>playerById(id)).filter(Boolean);if(!players.length)continue;let best=null,winners=[];for(const p of players){const ev=evalMap[p.id];if(!best||compareEval(ev,best)>0){best=ev;winners=[p];}else if(compareEval(ev,best)===0)winners.push(p);}winners.sort((a,b)=>a.seat-b.seat);const share=Math.floor(pot.amount/winners.length);let remainder=pot.amount-share*winners.length;for(const w of winners){let amt=share;if(remainder>0){amt+=1;remainder--;}w.chips+=amt;results.push({playerId:w.id,amount:amt});}}return results;}
-function checkGameEnd(){if(session.handNo>=session.maxHands){session.phase='gameOver';const maxChips=Math.max(...session.players.map(p=>p.chips));session.finalWinners=session.players.filter(p=>p.chips===maxChips).map(p=>p.id);addHistory(`ゲーム終了！最終トップ：${session.players.filter(p=>p.chips===maxChips).map(p=>p.name).join('・')}（${maxChips}pt）`);}}
-function finishByFold(w){session.phase='handEnd';session.deadline=null;session.actingId=null;const potTotal=session.players.filter(p=>p.inHand).reduce((s,p)=>s+p.totalBet,0);w.chips+=potTotal;session.lastPotTotal=potTotal;session.winners=[w.id];session.showdownHands={};addHistory(`${w.name} が残り1人となり、${potTotal}pt を獲得。`);checkGameEnd();broadcast();}
-function finishShowdown(){const contenders=session.players.filter(p=>p.inHand&&!p.folded);session.phase='showdown';session.deadline=null;session.actingId=null;session.showdownHands={};
+function markBusted(){for(const p of session.players){if(!p.chosenSpectator&&p.chips<=0&&!p.busted){p.busted=true;addHistory(`${p.name} のチップが0になったため観戦モードになりました。`);}}}
+function checkGameEnd(){const competitors=session.players.filter(p=>!p.chosenSpectator);if(session.handNo>=session.maxHands){session.phase='gameOver';const maxChips=Math.max(...competitors.map(p=>p.chips));session.finalWinners=competitors.filter(p=>p.chips===maxChips).map(p=>p.id);addHistory(`ゲーム終了！最終トップ：${competitors.filter(p=>p.chips===maxChips).map(p=>p.name).join('・')}（${maxChips}pt）`);}}
+function finishByFold(w){session.phase='handEnd';session.actingId=null;const potTotal=session.players.filter(p=>p.inHand).reduce((s,p)=>s+p.totalBet,0);w.chips+=potTotal;session.lastPotTotal=potTotal;session.winners=[w.id];session.showdownHands={};addHistory(`${w.name} が残り1人となり、${potTotal}pt を獲得。`);markBusted();checkGameEnd();broadcast();}
+function finishShowdown(){const contenders=session.players.filter(p=>p.inHand&&!p.folded);session.phase='showdown';session.actingId=null;session.showdownHands={};
 if(!contenders.length){session.winners=[];broadcast();return;}
 const evalMap={};for(const p of contenders){const ev=evaluate7([...p.hole,...session.board]);evalMap[p.id]=ev;session.showdownHands[p.id]={cards:p.hole,evaluation:ev};}
 const pots=computePots();const results=distributePots(pots,evalMap);const winnerIds=[...new Set(results.map(r=>r.playerId))];session.winners=winnerIds;session.lastPotTotal=pots.reduce((s,p)=>s+p.amount,0);
 const summary=winnerIds.map(id=>{const amt=results.filter(r=>r.playerId===id).reduce((s,r)=>s+r.amount,0);return `${playerById(id)?.name}(+${amt})`;}).join('・');
-addHistory(`ショーダウン：${summary}`);broadcast();
+addHistory(`ショーダウン：${summary}`);markBusted();broadcast();
 setTimeout(()=>{if(session&&session.phase==='showdown'){session.phase='handEnd';checkGameEnd();broadcast();}},1400);}
-function timeoutCheck(){if(mode!=='host'||!session||!session.deadline)return;if(Date.now()>=session.deadline&&['preflop','flop','turn','river'].includes(session.phase)&&session.actingId){const p=playerById(session.actingId);if(p){const toCall=session.currentBet-p.bet;applyAction(p.id,toCall>0?'fold':'check',null,true);}}}
 function applyAction(pid,kind,amount,auto){if(mode!=='host'||!session)return;if(!['preflop','flop','turn','river'].includes(session.phase))return;if(session.actingId!==pid)return;const p=playerById(pid);if(!p||!p.inHand||p.folded||p.allIn)return;
 const toCall=session.currentBet-p.bet;const suf=auto?'（時間切れ自動）':'';
 if(kind==='fold'){p.folded=true;p.hasActed=true;addHistory(`${p.name} がフォールド。${suf}`);}
@@ -239,10 +248,11 @@ const BETTING_PHASES=['preflop','flop','turn','river'];
 function renderCommon(st,myPlayerId,isHostView){if(!st)return;els.roomTitle.textContent=`テーブル / ${st.players.length}人`;
 els.handMeta.textContent=st.handNo?`Hand #${st.handNo}/${st.maxHands} ・ Dealer: ${st.players.find(p=>p.id===st.dealerId)?.name||'-'}`:`ハンド開始待ち（開始チップ ${st.startingChips}pt / SB${st.smallBlind}-BB${st.bigBlind} / 全${st.maxHands}ハンド）`;
 els.phaseLabel.textContent=PHASES[st.phase]||st.phase;
-const remaining=st.deadline?Math.max(0,Math.ceil((st.deadline-Date.now())/1000)):null;els.timerLabel.textContent=remaining===null?'--':`${remaining}s`;
 els.board.innerHTML='';for(let i=0;i<5;i++)els.board.insertAdjacentHTML('beforeend',st.board[i]?cardHTML(st.board[i]):'<div class="card placeholder"></div>');
-const me=st.players.find(p=>p.id===myPlayerId);const hole=st.myHole||[];els.yourCards.innerHTML=hole.length?hole.map(c=>cardHTML(c)).join(''):backHTML()+backHTML();
-if(hole.length&&st.board.length>=3){els.yourHandName.textContent=evaluate7([...hole,...st.board]).name||'';}else els.yourHandName.textContent='';
+const me=st.players.find(p=>p.id===myPlayerId);const iAmSpectator=!!st.isSpectatorView;const hole=st.myHole||[];
+if(iAmSpectator){els.yourCards.innerHTML='';els.yourHandName.textContent='観戦中（各プレイヤーのカードは下に表示されます）';}
+else{els.yourCards.innerHTML=hole.length?hole.map(c=>cardHTML(c)).join(''):backHTML()+backHTML();
+if(hole.length&&st.board.length>=3){els.yourHandName.textContent=evaluate7([...hole,...st.board]).name||'';}else els.yourHandName.textContent='';}
 
 els.lobbySettings.classList.toggle('hidden',!(isHostView&&st.phase==='lobby'&&!st.configLocked));
 els.gameOverBox.classList.toggle('hidden',st.phase!=='gameOver');
@@ -255,12 +265,13 @@ if(me){const toCall=Math.max(0,(st.currentBet||0)-(me.bet||0));els.checkCallBtn.
 const minRaiseTo=(st.currentBet||0)+(st.minRaise||st.bigBlind||20);const maxRaiseTo=me.bet+me.chips;els.raiseInput.min=minRaiseTo;els.raiseInput.max=maxRaiseTo;if(myTurn&&(!els.raiseInput.dataset.touched||els.raiseInput.dataset.forHand!==String(st.handNo)+st.phase+me.bet)){els.raiseInput.value=Math.min(minRaiseTo,maxRaiseTo);els.raiseInput.dataset.forHand=String(st.handNo)+st.phase+me.bet;}}
 els.newHandBtn.disabled=!(st.phase==='lobby'||st.phase==='handEnd'||st.phase==='showdown')||st.phase==='gameOver';
 els.newHandBtn.classList.toggle('hidden',st.phase==='gameOver');
-els.potBar.innerHTML=`<span>ポット: <b>${st.pot||0}</b>pt</span>`+(inBetting?`<span>現在のベット: <b>${st.currentBet||0}</b>pt</span>`:'')+(me?`<span>所持: <b>${me.chips}</b>pt</span>`:'');
-els.players.innerHTML=st.players.sort((a,b)=>a.seat-b.seat).map(p=>{const badges=[];if(p.id===st.dealerId)badges.push('<span class="badge d">D</span>');if(p.id===st.sbId&&inBetting)badges.push('<span class="badge sb">SB</span>');if(p.id===st.bbId&&inBetting)badges.push('<span class="badge bb">BB</span>');if(p.isHost)badges.push('<span class="badge">HOST</span>');if(!p.connected)badges.push('<span class="badge off">OFFLINE</span>');if(p.folded)badges.push('<span class="badge">FOLD</span>');else if(p.allIn)badges.push('<span class="badge allin">ALL-IN</span>');else if(p.id===st.actingId&&inBetting)badges.push('<span class="badge turn">TURN</span>');
-return `<div class="player ${p.id===myPlayerId?'me':''} ${p.folded?'folded':''} ${p.id===st.actingId&&inBetting?'turn':''}"><div class="pname">${escapeHtml(p.name)}</div><div class="pchips">${p.chips}pt${p.bet?` <span class="pbet">(ベット ${p.bet})</span>`:''}</div><div class="badges">${badges.join('')}</div></div>`;}).join('');
+els.potBar.innerHTML=`<span>ポット: <b>${st.pot||0}</b>pt</span>`+(inBetting?`<span>現在のベット: <b>${st.currentBet||0}</b>pt</span>`:'')+(me&&!iAmSpectator?`<span>所持: <b>${me.chips}</b>pt</span>`:'')+(iAmSpectator?'<span>観戦モード</span>':'');
+els.players.innerHTML=st.players.sort((a,b)=>a.seat-b.seat).map(p=>{const isSpec=p.chosenSpectator||p.busted;const badges=[];if(p.id===st.dealerId)badges.push('<span class="badge d">D</span>');if(p.id===st.sbId&&inBetting)badges.push('<span class="badge sb">SB</span>');if(p.id===st.bbId&&inBetting)badges.push('<span class="badge bb">BB</span>');if(p.isHost)badges.push('<span class="badge">HOST</span>');if(!p.connected)badges.push('<span class="badge off">OFFLINE</span>');if(isSpec)badges.push('<span class="badge">観戦</span>');if(p.folded)badges.push('<span class="badge">FOLD</span>');else if(p.allIn)badges.push('<span class="badge allin">ALL-IN</span>');else if(p.id===st.actingId&&inBetting)badges.push('<span class="badge turn">TURN</span>');
+const revealHole=st.spectateHoles&&st.spectateHoles[p.id];const holeHTML=revealHole?`<div class="mini-cards" style="margin-top:4px">${revealHole.map(c=>cardHTML(c,true)).join('')}</div>`:'';
+return `<div class="player ${p.id===myPlayerId?'me':''} ${p.folded?'folded':''} ${p.id===st.actingId&&inBetting?'turn':''}"><div class="pname">${escapeHtml(p.name)}</div><div class="pchips">${isSpec?'観戦中':`${p.chips}pt`}${p.bet?` <span class="pbet">(ベット ${p.bet})</span>`:''}</div><div class="badges">${badges.join('')}</div>${holeHTML}</div>`;}).join('');
 const wn=st.winners?.map(id=>st.players.find(p=>p.id===id)?.name).filter(Boolean)||[];els.winnerText.textContent=(st.phase==='showdown'||st.phase==='handEnd')&&wn.length?`勝者：${wn.join('・')}（+${st.lastPotTotal||0}pt）`:'';
 els.showdown.innerHTML='';for(const [pid,h] of Object.entries(st.showdownHands||{})){const p=st.players.find(x=>x.id===pid);if(!p)continue;els.showdown.insertAdjacentHTML('beforeend',`<div class="showdown-hand"><div style="font-weight:800;margin-bottom:6px">${escapeHtml(p.name)} ・ ${escapeHtml(h.evaluation?.name||'')}</div><div class="mini-cards">${h.cards.map(c=>cardHTML(c,true)).join('')}</div></div>`);}
-if(st.phase==='gameOver'){const ranked=[...st.players].sort((a,b)=>b.chips-a.chips);els.gameOverTitle.textContent=`ゲーム終了！優勝：${st.players.filter(p=>st.finalWinners?.includes(p.id)).map(p=>p.name).join('・')}`;
+if(st.phase==='gameOver'){const ranked=[...st.players].filter(p=>!p.chosenSpectator).sort((a,b)=>b.chips-a.chips);els.gameOverTitle.textContent=`ゲーム終了！優勝：${st.players.filter(p=>st.finalWinners?.includes(p.id)).map(p=>p.name).join('・')}`;
 els.standings.innerHTML=ranked.map((p,i)=>`<div class="standing-row ${st.finalWinners?.includes(p.id)?'win':''}"><span class="standing-rank">${i+1}位</span><span>${escapeHtml(p.name)}</span><span><b>${p.chips}</b>pt</span></div>`).join('');
 els.newGameBtn.classList.toggle('hidden',!isHostView);}
 els.history.innerHTML=(st.history||[]).map(e=>`<div class="event"><span style="color:#89aa9a">${e.t}</span> ${escapeHtml(e.text)}</div>`).join('')||'<div class="sub">まだ履歴はありません。</div>';
@@ -280,6 +291,7 @@ function closeAllPeers(){for(const r of hostPeers.values())try{r.pc.close();}cat
 function disconnectSignal(manual=false){clearTimeout(reconnectTimer);reconnectTimer=null;signalConnected=false;try{signalSocket?.close(1000,manual?'leave':'reset');}catch{}signalSocket=null;closeAllPeers();}
 async function enterByPhrase(hashOverride=''){
   persistIdentity();
+  joinRole=els.roleSelect.value==='spectator'?'spectator':'player';
   const phrase=(els.roomInput.value||'').trim();
   if(!signalBase){setMsg(els.joinMsg,'先に「初回設定：接続サーバー」を開いてURLを保存してください。','warn');els.serverSetup.open=true;return;}
   if(!myName){setMsg(els.joinMsg,'表示名を入力してください。','warn');return;}
@@ -334,13 +346,13 @@ async function createHostPeer(peerId){
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);sendSignal(peerId,{kind:'offer',sdp:pc.localDescription});
 }
 function wireHostChannel(peerId,dc){dc.onopen=()=>{try{dc.send(JSON.stringify({type:'welcome',sessionId:session.id,version:APP_VERSION}));}catch{}};dc.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='hello')hostHello(peerId,m);else if(m.type==='action')applyAction(m.playerId,m.action?.kind,m.action?.amount);else if(m.type==='requestNewHand')dealNewHand();else if(m.type==='requestNewGame')resetGame();};dc.onclose=()=>{const p=playerById(peerId);if(p){p.connected=false;hostChannels.delete(p.id);broadcast();}};}
-function hostHello(peerId,m){const rec=hostPeers.get(peerId);if(!rec)return;let p=playerById(m.playerId);if(p){p.name=safeName(m.name);p.connected=true;hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が再接続しました。`);}else{if(session.players.length>=MAX_PLAYERS){rec.dc.send(JSON.stringify({type:'error',message:'この部屋は満員です。'}));return;}p={id:m.playerId,name:safeName(m.name),seat:nextSeat(),connected:true,isHost:false,inHand:false,folded:false,allIn:false,hasActed:false,hole:[],chips:session.startingChips,bet:0,totalBet:0};session.players.push(p);hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が参加しました。`);}broadcast();}
+function hostHello(peerId,m){const rec=hostPeers.get(peerId);if(!rec)return;let p=playerById(m.playerId);if(p){p.name=safeName(m.name);p.connected=true;hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が再接続しました。`);}else{if(session.players.length>=MAX_PLAYERS){rec.dc.send(JSON.stringify({type:'error',message:'この部屋は満員です。'}));return;}const wantsSpectator=m.role==='spectator';p={id:m.playerId,name:safeName(m.name),seat:nextSeat(),connected:true,isHost:false,inHand:false,folded:false,allIn:false,hasActed:false,hole:[],chips:wantsSpectator?0:session.startingChips,bet:0,totalBet:0,chosenSpectator:wantsSpectator,busted:false};session.players.push(p);hostChannels.set(p.id,rec.dc);addHistory(`${p.name} が${wantsSpectator?'観戦者として':''}参加しました。`);}broadcast();}
 function nextSeat(){for(let i=0;i<MAX_PLAYERS;i++)if(!session.players.some(p=>p.seat===i))return i;return session.players.length;}
 async function handleHostSignal(from,data){let rec=hostPeers.get(from);if(!rec&&data?.kind==='offer')return;if(!rec){await createHostPeer(from);rec=hostPeers.get(from);}if(!rec)return;try{if(data.kind==='answer'){await rec.pc.setRemoteDescription(data.sdp);for(const c of rec.pending.splice(0))await rec.pc.addIceCandidate(c);}else if(data.kind==='ice'){if(rec.pc.remoteDescription)await rec.pc.addIceCandidate(data.candidate);else rec.pending.push(data.candidate);}}catch(e){console.warn('host signal',e);}}
 async function handleGuestSignal(from,data){guestHostId=from;if(data.kind==='reject'){alert(data.reason||'参加できません');return;}try{if(data.kind==='offer'){
     try{guestPC?.close();}catch{}guestPending=[];guestPC=new RTCPeerConnection(rtcConfig());guestPC.ondatachannel=e=>{guestDC=e.channel;wireGuestChannel();};guestPC.onicecandidate=e=>{if(e.candidate)sendSignal(from,{kind:'ice',candidate:e.candidate});};guestPC.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(guestPC.connectionState)){els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');}};await guestPC.setRemoteDescription(data.sdp);const answer=await guestPC.createAnswer();await guestPC.setLocalDescription(answer);sendSignal(from,{kind:'answer',sdp:guestPC.localDescription});for(const c of guestPending.splice(0))await guestPC.addIceCandidate(c);
   }else if(data.kind==='ice'){if(guestPC?.remoteDescription)await guestPC.addIceCandidate(data.candidate);else guestPending.push(data.candidate);}}catch(e){console.warn('guest signal',e);}}
-function wireGuestChannel(){if(!guestDC)return;guestDC.onopen=()=>{els.netStatus.textContent='ホストに接続済み';guestDC.send(JSON.stringify({type:'hello',playerId:myId,name:myName}));};guestDC.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='state'){clientState=m.state;showOnly('game');renderGuest();}else if(m.type==='error'){alert(m.message);}};guestDC.onclose=()=>{els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');};}
+function wireGuestChannel(){if(!guestDC)return;guestDC.onopen=()=>{els.netStatus.textContent='ホストに接続済み';guestDC.send(JSON.stringify({type:'hello',playerId:myId,name:myName,role:joinRole}));};guestDC.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}if(m.type==='state'){clientState=m.state;showOnly('game');renderGuest();}else if(m.type==='error'){alert(m.message);}};guestDC.onclose=()=>{els.netStatus.textContent='ホストとの接続が切れました';els.reconnectBtn.classList.remove('hidden');};}
 function sendGuest(msg){if(guestDC?.readyState==='open')guestDC.send(JSON.stringify(msg));}
 function doAction(kind,amount){if(mode==='host')applyAction(myId,kind,amount);else sendGuest({type:'action',playerId:myId,action:{kind,amount}});}
 function requestNewHand(){if(mode==='host')dealNewHand();else sendGuest({type:'requestNewHand',playerId:myId});}
@@ -353,7 +365,7 @@ els.checkCallBtn.onclick=()=>doAction('call');els.foldBtn.onclick=()=>doAction('
 els.raiseBtn.onclick=()=>doAction('raise',parseInt(els.raiseInput.value)||0);els.allinBtn.onclick=()=>doAction('allin');
 els.raiseInput.addEventListener('input',()=>{els.raiseInput.dataset.touched='1';});
 els.newHandBtn.onclick=requestNewHand;els.newGameBtn.onclick=requestNewGame;els.leaveBtn.onclick=()=>leaveRoom(true);els.reconnectBtn.onclick=()=>{if(roomHash)connectSignal();else showOnly('home');};
-setInterval(()=>{timeoutCheck();if(clientState){if(mode==='host')renderHost();else renderGuest();}},500);
+setInterval(()=>{if(clientState){if(mode==='host')renderHost();else renderGuest();}},1000);
 
 const signalFromQuery=new URL(location.href).searchParams.get('signal');if(signalFromQuery){const v=normalizeSignalUrl(signalFromQuery);if(v){signalBase=v;localStorage.setItem('holdemSignalUrl',v);els.signalUrlInput.value=v;els.signalMsg.textContent='共有された接続サーバー設定を保存しました。';history.replaceState(null,'',location.pathname+location.hash);}}
 if(rtcSupported()){setMsg(els.compat,'このブラウザは必要な機能に対応しています。','ok');els.joinBtn.disabled=false;}else{setMsg(els.compat,'このブラウザではWebRTCまたは安全な乱数生成が使えません。Safariの最新版で開いてください。','warn');els.joinBtn.disabled=true;}
